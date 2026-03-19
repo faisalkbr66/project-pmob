@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:markup_mobile/main.dart';
+// Sesuaikan path import ini jika ada yang berbeda
+import 'package:markup_mobile/app.dart';
+import 'package:markup_mobile/viewmodels/auth_viewmodel.dart';
+import 'package:markup_mobile/viewmodels/dashboard_viewmodel.dart';
+import 'package:markup_mobile/viewmodels/course_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App should render without crashing', (WidgetTester tester) async {
+    // 1. Build aplikasi kita dengan MultiProvider yang sama persis dengan main.dart
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthViewModel()),
+          ChangeNotifierProvider(create: (_) => DashboardViewModel()),
+          ChangeNotifierProvider(create: (_) => CourseProvider()),
+        ],
+        child: const MarkUpApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // 2. Tunggu sebentar untuk memastikan widget selesai dimuat
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // 3. Verifikasi sederhana: Pastikan ada MaterialApp yang berhasil di-render
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }
