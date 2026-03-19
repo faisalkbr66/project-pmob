@@ -1,69 +1,63 @@
-// ============================================
-// FILE: lib/viewmodels/dashboard_viewmodel.dart
-// ============================================
-
 import 'package:flutter/material.dart';
-import '../models/menu_item_model.dart';
-import '../config/app_routes.dart';
 import '../services/storage_service.dart';
+import '../models/course_model.dart';
+import '../models/competition_model.dart';
 
 class DashboardViewModel extends ChangeNotifier {
   String _userName = 'User';
-
   String get userName => _userName;
 
-  // Menu items untuk dashboard
-  List<MenuItemModel> get menuItems => [
-    MenuItemModel(
-      title: 'Profil Organisasi',
-      subtitle: 'Tentang Mark-Up',
-      icon: Icons.business_rounded,
-      color: const Color(0xFF00146B), // Disesuaikan dengan brandNavy
-      route: AppRoutes.dashboard, // nanti ganti ke route profil
+  int _currentIndex = 0;
+  int get currentIndex => _currentIndex;
+
+  void setBottomNavIndex(int index) {
+    _currentIndex = index;
+    notifyListeners();
+  }
+
+  // Data Dummy Produk Unggulan
+  final List<Course> featuredModules = [
+    Course(
+      title: "Winner Class & Module: Business Case",
+      ratingText: "4.9 (1.2k+ Siswa)",
+      price: "Rp 149.000",
+      imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=500", // Placeholder
+      badge: "TERPOPULER",
     ),
-    MenuItemModel(
-      title: 'Mentor',
-      subtitle: 'Daftar mentor kami',
-      icon: Icons.people_rounded,
-      color: const Color(0xFF00796B),
-      route: AppRoutes.dashboard,
-    ),
-    MenuItemModel(
-      title: 'Paket Belajar',
-      subtitle: 'Pilih paket kamu',
-      icon: Icons.card_membership_rounded,
-      color: const Color(0xFF8B008B), // Disesuaikan dengan brandPurple
-      route: AppRoutes.dashboard,
-    ),
-    MenuItemModel(
-      title: 'Modul & Video',
-      subtitle: 'Materi pembelajaran',
-      icon: Icons.play_lesson_rounded,
-      color: const Color(0xFFF57C00),
-      route: AppRoutes.dashboard,
-    ),
-    MenuItemModel(
-      title: 'Live Mentoring',
-      subtitle: 'Booking sesi mentor',
-      icon: Icons.video_call_rounded,
-      color: const Color(0xFFE53935),
-      route: AppRoutes.dashboard,
-    ),
-    MenuItemModel(
-      title: 'Lomba & Event',
-      subtitle: 'Info kompetisi terbaru',
-      icon: Icons.emoji_events_rounded,
-      color: const Color(0xFF2E7D32),
-      route: AppRoutes.dashboard,
+    Course(
+      title: "WOW Case Mastery Class",
+      ratingText: "4.8 (800+ Siswa)",
+      price: "Rp 299.000",
+      imageUrl: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=500", // Placeholder
+      badge: "EXCLUSIVE",
     ),
   ];
 
-  // Load user info (nama dan universitas) dari SharedPreferences
-  Future<void> loadUserInfo() async {
+  // Data Dummy Info Lomba Terbaru
+  final List<Competition> competitions = [
+    Competition(
+      title: "National Business Plan Competition 2026",
+      month: "MAR",
+      date: "14",
+      category: "MAHASISWA",
+      prizeInfo: "Prize: Rp 25.000.000",
+      imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500", // Placeholder
+    ),
+    Competition(
+      title: "I-START Startup Challenge Asia",
+      month: "APR",
+      date: "02",
+      category: "UMUM",
+      prizeInfo: "Free Registration",
+      imageUrl: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=500", // Placeholder
+    ),
+  ];
+
+  Future<void> loadUserName() async {
     final name = await StorageService.getUserName();
-    
-    _userName = name ?? 'User';
-    
+    if (name != null && name.isNotEmpty) {
+      _userName = name.split(' ')[0]; // Ambil nama panggilan
+    }
     notifyListeners();
   }
 }
