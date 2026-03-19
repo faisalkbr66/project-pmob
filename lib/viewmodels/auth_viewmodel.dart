@@ -47,7 +47,7 @@ class AuthViewModel extends ChangeNotifier {
   // Register — dummy untuk minggu ini, nanti konek ke Laravel API
   // TAMBAHAN: Menambahkan parameter universityName
 // Register — dummy untuk minggu ini, nanti konek ke Laravel API
-  Future<bool> register(String name, String email, String universityName, String password) async {
+  Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -57,10 +57,7 @@ class AuthViewModel extends ChangeNotifier {
 
       // Dummy: anggap registrasi selalu berhasil
       await StorageService.saveToken('dummy_token_register');
-      
-      // PERUBAHAN DI SINI:
-      // Mengirimkan parameter university ke StorageService
-      await StorageService.saveUserInfo(name, email, university: universityName); 
+      await StorageService.saveUserInfo(name, email); 
       
       _isLoading = false;
       notifyListeners();

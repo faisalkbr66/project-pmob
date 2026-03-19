@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '/config/app_routes.dart';
 import '/config/app_theme.dart';
 import '/viewmodels/auth_viewmodel.dart';
-import '/widgets/custom_text_field.dart'; // IMPORT BARU
-import '/widgets/custom_button.dart';     // IMPORT BARU
+import '/widgets/custom_text_field.dart'; 
+import '/widgets/custom_button.dart';     
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,18 +17,19 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _universityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController(); // TAMBAHAN
   
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true; // TAMBAHAN
   bool _agreedToTerms = false; 
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _universityController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -46,31 +47,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
-    final university = _universityController.text.trim();
     final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || university.isEmpty || password.isEmpty) {
+    // 1. Validasi Kosong
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       _showSnackBar('Semua field harus diisi');
       return;
     }
 
+    // 2. Validasi Email
     if (!email.contains('@')) {
       _showSnackBar('Format email tidak valid');
       return;
     }
 
+    // 3. Validasi Panjang Password
     if (password.length < 6) {
       _showSnackBar('Password minimal 6 karakter');
       return;
     }
 
+    // 4. VALIDASI BARU: Password & Confirm Password harus sama
+    if (password != confirmPassword) {
+      _showSnackBar('Konfirmasi password tidak cocok');
+      return;
+    }
+
+    // 5. Validasi Terms of Service
     if (!_agreedToTerms) {
       _showSnackBar('Anda harus menyetujui Terms of Service');
       return;
     }
 
     final authVM = context.read<AuthViewModel>();
-    final success = await authVM.register(name, email, university, password);
+    // Memanggil register TANPA university
+    final success = await authVM.register(name, email, password);
 
     if (!mounted) return;
 
@@ -84,21 +96,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Menggunakan AppColors
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. Judul dan Subjudul
+              // Judul
               Text(
                 'Register',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary, // Menggunakan AppColors
+                  color: AppColors.primary, 
                 ),
               ),
               const SizedBox(height: 12),
@@ -113,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 40),
 
-              // 2. Full Name menggunakan CustomTextField
+              // Full Name
               CustomTextField(
                 controller: _nameController,
                 label: 'Full Name',
@@ -121,7 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 3. Email menggunakan CustomTextField
+              // Email
               CustomTextField(
                 controller: _emailController,
                 label: 'Email',
@@ -130,15 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 4. University Name menggunakan CustomTextField
-              CustomTextField(
-                controller: _universityController,
-                label: 'University Name',
-                hint: 'Stanford Graduate School',
-              ),
-              const SizedBox(height: 20),
-
-              // 5. Password menggunakan CustomTextField
+              // Password
               CustomTextField(
                 controller: _passwordController,
                 label: 'Password',
@@ -156,9 +160,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // Confirm Password (Menggantikan University)
+              CustomTextField(
+                controller: _confirmPasswordController,
+                label: 'Confirm Password',
+                hint: '••••••••',
+                obscureText: _obscureConfirmPassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey.shade600,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
+                ),
+              ),
               const SizedBox(height: 24),
 
-              // 6. Checkbox Terms of Service
+              // Checkbox Terms of Service
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -167,7 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: 24,
                     child: Checkbox(
                       value: _agreedToTerms,
-                      activeColor: AppColors.secondary, // Menggunakan AppColors
+                      activeColor: AppColors.secondary, 
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -189,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           height: 1.5,
                         ),
                         children: const [
-                        TextSpan(text: 'I agree to the '),
+                          TextSpan(text: 'I agree to the '),
                           TextSpan(
                             text: 'Terms of Service',
                             style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600),
@@ -208,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 32),
 
-              // 7. Tombol Create Account menggunakan CustomButton
+              // Tombol Create Account 
               Consumer<AuthViewModel>(
                 builder: (context, authVM, _) {
                   return CustomButton(
@@ -220,7 +244,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 32),
 
-              // 8. Divider "OR CONTINUE WITH"
+              // Divider "OR CONTINUE WITH"
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
@@ -241,12 +265,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 9. Social Login Buttons
+              // Social Login Buttons
               Row(
                 children: [
                   Expanded(
                     child: _buildSocialButton(
-                      icon: Image.asset( // Disamakan dengan login_screen
+                      icon: Image.asset( 
                         'assets/images/google.png',
                         height: 20,
                       ),
@@ -266,7 +290,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 40),
 
-              // 10. Divider "AUTHENTIC ACCESS" & Login Link
+              // Divider "AUTHENTIC ACCESS" & Login Link
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
@@ -306,7 +330,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.secondary, // Menggunakan AppColors ungu
+                        color: AppColors.secondary, 
                         decoration: TextDecoration.underline,
                       ),
                     ),
@@ -321,7 +345,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Helper _buildSocialButton tetap dipertahankan
   Widget _buildSocialButton({
     required Widget icon,
     required String label,
@@ -333,7 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface, // Menggunakan AppColors
+          color: AppColors.surface, 
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade300),
         ),

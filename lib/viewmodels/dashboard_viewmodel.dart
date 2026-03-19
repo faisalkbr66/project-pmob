@@ -9,10 +9,8 @@ import '../services/storage_service.dart';
 
 class DashboardViewModel extends ChangeNotifier {
   String _userName = 'User';
-  String _userUniversity = ''; // TAMBAHAN: Untuk menyimpan data kampus
 
   String get userName => _userName;
-  String get userUniversity => _userUniversity; // Getter untuk UI
 
   // Menu items untuk dashboard
   List<MenuItemModel> get menuItems => [
@@ -63,10 +61,8 @@ class DashboardViewModel extends ChangeNotifier {
   // Load user info (nama dan universitas) dari SharedPreferences
   Future<void> loadUserInfo() async {
     final name = await StorageService.getUserName();
-    final university = await StorageService.getUserUniversity();
     
     _userName = name ?? 'User';
-    _userUniversity = university ?? 'Universitas Tidak Diketahui';
     
     notifyListeners();
   }

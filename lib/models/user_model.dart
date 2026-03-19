@@ -4,9 +4,8 @@
 
 class UserModel {
   final int id;
-  final String name; // Ini akan menampung data 'Full Name'
+  final String name; 
   final String email;
-  final String? universityName; // TAMBAHAN BARU: Menampung asal universitas
   final String role;
   final String? token;
 
@@ -14,7 +13,6 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
-    this.universityName, // Tambahkan di constructor (bisa nullable)
     required this.role,
     this.token,
   });
@@ -24,8 +22,6 @@ class UserModel {
       id: json['id'],
       name: json['name'],
       email: json['email'],
-      // Pastikan key 'university_name' ini persis sama dengan yang dikirim dari Backend/API kamu
-      universityName: json['university_name'],
       role: json['role'] ?? 'user',
       token: json['token'],
     );
@@ -36,7 +32,6 @@ class UserModel {
       'id': id,
       'name': name,
       'email': email,
-      'university_name': universityName, // Sesuaikan juga key-nya di sini
       'role': role,
       'token': token,
     };
