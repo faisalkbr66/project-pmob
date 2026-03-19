@@ -43,5 +43,3 @@ class ApiService {
 
   static Dio get dio => _dio;
 }
-
-

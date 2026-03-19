@@ -4,79 +4,81 @@
 
 import 'package:flutter/material.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  final AuthService _authService = AuthService();
+
   bool _isLoading = false;
   String? _errorMessage;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Login — untuk minggu ini pakai dummy login
-  // Nanti di minggu berikutnya akan konek ke Laravel API
+  // ================= FUNGSI LOGIN (SUDAH KONEK API) =================
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    try {
-      // Simulasi delay network
-      await Future.delayed(const Duration(seconds: 1));
+    // 1. Panggil API melalui AuthService
+    var result = await _authService.login(email, password);
 
-      // Dummy validation (ganti dengan API call nanti)
-      if (email == 'admin@markup.com' && password == '123') {
-        await StorageService.saveToken('dummy_token_12345');
-        await StorageService.saveUserInfo('Admin Mark-Up', email);
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _errorMessage = 'Email atau password salah';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    } catch (e) {
-      _errorMessage = 'Terjadi kesalahan. Coba lagi.';
-      _isLoading = false;
+    _isLoading = false;
+
+    if (result['success'] == true) {
+      // 2. Simpan token ke HP melalui StorageService buatan tim Anda
+      await StorageService.saveToken(result['token']);
+
+      // 3. Simpan nama dan email ke HP
+      // Mengambil nama dari respons JSON Laravel, jika kosong pakai default
+      String name = result['user']?['name'] ?? 'User Mark-Up';
+      await StorageService.saveUserInfo(name, email);
+
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = result['message'];
       notifyListeners();
       return false;
     }
   }
 
-  // Register — dummy untuk minggu ini, nanti konek ke Laravel API
-  // TAMBAHAN: Menambahkan parameter universityName
-// Register — dummy untuk minggu ini, nanti konek ke Laravel API
+  // ================= FUNGSI REGISTER (SUDAH KONEK API) =================
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    try {
-      await Future.delayed(const Duration(seconds: 1));
+    var result = await _authService.register(name, email, password, 'student');
 
-      // Dummy: anggap registrasi selalu berhasil
-      await StorageService.saveToken('dummy_token_register');
-      await StorageService.saveUserInfo(name, email); 
-      
-      _isLoading = false;
+    _isLoading = false;
+
+    if (result['success'] == true) {
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = 'Registrasi gagal. Coba lagi.';
-      _isLoading = false;
+    } else {
+      _errorMessage = result['message'];
       notifyListeners();
       return false;
     }
   }
 
-  // Logout
+  // ================= FUNGSI LOGOUT (SUDAH KONEK API) =================
   Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
+    // 1. Beritahu Laravel untuk menghancurkan Token
+    await _authService.logout();
+
+    // 2. Kosongkan brankas di HP
     await StorageService.clearAll();
+
+    _isLoading = false;
     notifyListeners();
   }
 
-  // Check login status (untuk splash screen)
   Future<bool> checkLoginStatus() async {
     return await StorageService.isLoggedIn();
   }
