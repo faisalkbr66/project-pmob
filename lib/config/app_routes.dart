@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import '/views/splash_screen/splash_screen.dart';
 import '/views/login_screen/login_screen.dart';
-import '/views/dashboard_screen/dashboard_screen.dart';
 import '/views/register_screen/register_screen.dart';
+import '/views/main_navigation.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -18,7 +18,8 @@ class AppRoutes {
     splash: (context) => const SplashScreen(),
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterScreen(),
-    dashboard: (context) => const DashboardScreen(),
+    // Dashboard sekarang dibungkus MainNavigation (shell bottom nav 4 tab).
+    dashboard: (context) => const MainNavigation(),
   };
 }
 

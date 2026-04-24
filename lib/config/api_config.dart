@@ -6,7 +6,7 @@ class ApiConfig {
   // Ganti dengan IP address laptop kamu saat develop
   // Untuk emulator Android: 10.0.2.2
   // Untuk device fisik: IP lokal laptop (misal 192.168.x.x)
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'http://192.168.174.1:8000/api';
 
   // Endpoints (akan dipakai di minggu-minggu berikutnya)
   static const String login = '/login';

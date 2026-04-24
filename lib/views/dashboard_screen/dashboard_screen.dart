@@ -53,7 +53,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
     );
   }
 
@@ -509,39 +508,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Bottom Navigation Bar
-  Widget _buildBottomNav(BuildContext context) {
-    final vm = context.watch<DashboardViewModel>();
-    
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: vm.currentIndex,
-        onTap: vm.setBottomNavIndex,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: Colors.grey.shade400,
-        selectedLabelStyle: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600),
-        items: const [
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.home_rounded)), label: 'HOME'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.emoji_events_rounded)), label: 'LOMBA'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.menu_book_rounded)), label: 'MODUL'),
-          BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.person_rounded)), label: 'PROFIL'),
-        ],
       ),
     );
   }
