@@ -21,4 +21,8 @@ class ApiConfig {
   static const String competitions = '/competitions';
   // Endpoint baru untuk halaman Produk (Modul, Kelas, Bootcamp)
   static const String products = '/products';
+  static const String cart = '/cart';
+
+  static String productReviews(int productId) => '/products/$productId/reviews';
+  static String reviewById(int reviewId) => '/reviews/$reviewId';
 }
