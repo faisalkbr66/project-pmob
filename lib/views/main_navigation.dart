@@ -32,17 +32,49 @@ class _MainNavigationState extends State<MainNavigation> {
     ),
   ];
 
+  void _switchTab(int index) {
+    if (index < 0 || index >= _pages.length) return;
+    if (index == _currentIndex) return;
+    setState(() => _currentIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+    return MainNavigationScope(
+      switchTab: _switchTab,
+      currentIndex: _currentIndex,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: IndexedStack(index: _currentIndex, children: _pages),
+        bottomNavigationBar: CustomBottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _switchTab,
+        ),
       ),
     );
   }
+}
+
+/// InheritedWidget supaya screen anak bisa pindah tab tanpa lewat callback prop.
+/// Pakai dari mana saja: `MainNavigationScope.of(context)?.switchTab(2)`.
+class MainNavigationScope extends InheritedWidget {
+  const MainNavigationScope({
+    super.key,
+    required this.switchTab,
+    required this.currentIndex,
+    required super.child,
+  });
+
+  final void Function(int index) switchTab;
+  final int currentIndex;
+
+  static MainNavigationScope? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MainNavigationScope>();
+  }
+
+  @override
+  bool updateShouldNotify(MainNavigationScope old) =>
+      old.currentIndex != currentIndex;
 }
 
 class _PlaceholderPage extends StatelessWidget {
