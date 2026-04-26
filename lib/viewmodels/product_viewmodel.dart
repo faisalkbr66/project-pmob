@@ -112,23 +112,10 @@ class ProductViewModel extends ChangeNotifier {
   bool get showMentoring =>
       _activeTab == ProductTab.semua || _activeTab == ProductTab.mentoring;
 
-  /// Featured = produk pertama yang flag-nya `is_featured`.
-  /// Fallback ke produk dengan rating tertinggi (kalau ada).
-  ProductModel? get featuredProduct {
-    if (!showProducts || _activeTab == ProductTab.bootcamp) return null;
-    if (_products.isEmpty) return null;
-    final flagged = _products.where((p) => p.isFeatured).toList();
-    if (flagged.isNotEmpty) return flagged.first;
-    final sorted = [..._products]..sort((a, b) => b.rating.compareTo(a.rating));
-    return sorted.first;
-  }
-
-  /// Produk yang ditampilkan di grid (eksklusif featured).
+  /// Produk yang ditampilkan di grid.
   List<ProductModel> get gridProducts {
     if (!showProducts) return const [];
-    final featured = featuredProduct;
-    if (featured == null) return _products;
-    return _products.where((p) => p.id != featured.id).toList();
+    return _products;
   }
 
   /// Total mentor aktif untuk badge "X mentor aktif" di section header.
