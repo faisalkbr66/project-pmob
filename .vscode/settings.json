@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "C:/flutter/markup_mobile/linux"
+    "cmake.sourceDirectory": "C:/flutter/markup_mobile/linux",
+    "java.dependency.syncWithFolderExplorer": true
 }
