@@ -4,9 +4,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
+import '../../viewmodels/cart_viewmodel.dart';
 import '../../widgets/detail_widgets.dart';
+import '../../widgets/review_section.dart';
+import '../cart_screen.dart';
 
 class DetailKelasScreen extends StatefulWidget {
   const DetailKelasScreen({super.key, required this.product});
@@ -17,8 +21,50 @@ class DetailKelasScreen extends StatefulWidget {
 }
 
 class _DetailKelasScreenState extends State<DetailKelasScreen> {
-  bool _wishlisted = false;
   int _activeTab = 0;
+  bool _addingToCart = false;
+
+  Future<void> _addToCart() async {
+    if (_addingToCart) return;
+    setState(() => _addingToCart = true);
+    try {
+      await context.read<CartViewModel>().addProduct(widget.product);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.product.title} ditambahkan ke keranjang',
+            style: GoogleFonts.manrope(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          backgroundColor: const Color(0xFF001261),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          action: SnackBarAction(
+            label: 'Lihat',
+            textColor: const Color(0xFFF8E545),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CartScreen()),
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal: $e',
+              style: GoogleFonts.manrope(fontSize: 13)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _addingToCart = false);
+    }
+  }
 
   static const List<String> _tabs = ['Deskripsi', 'Kurikulum', 'Ulasan'];
 
@@ -179,10 +225,10 @@ class _DetailKelasScreenState extends State<DetailKelasScreen> {
           DetailStickyFooter(
             originalPrice: widget.product.formattedOriginalPrice,
             price: widget.product.formattedPriceFull,
-            ctaLabel: 'Beli Sekarang',
+            ctaLabel: _addingToCart ? 'Menambahkan...' : 'Beli Sekarang',
             ctaIcon: Icons.shopping_cart_outlined,
             ctaGradient: const [DetailColors.navy, DetailColors.blue],
-            onTap: () {},
+            onTap: _addingToCart ? null : _addToCart,
           ),
         ],
       ),
@@ -256,37 +302,7 @@ class _DetailKelasScreenState extends State<DetailKelasScreen> {
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 16,
-          right: 16,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              DetailBackButton(onTap: () => Navigator.of(context).pop()),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Material(
-                    color: Colors.black.withOpacity(0.28),
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {},
-                      child: const SizedBox(
-                        width: 36,
-                        height: 36,
-                        child: Icon(Icons.share_rounded,
-                            size: 16, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  DetailWishlistButton(
-                    active: _wishlisted,
-                    onTap: () => setState(() => _wishlisted = !_wishlisted),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          child: DetailBackButton(onTap: () => Navigator.of(context).pop()),
         ),
         // Hero badges
         Positioned(
@@ -469,78 +485,7 @@ class _DetailKelasScreenState extends State<DetailKelasScreen> {
   }
 
   Widget _buildUlasan() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const RatingSummaryCard(
-            rating: 4.9,
-            totalReviews: 1247,
-            distribution: [84, 11, 4, 1, 0],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 158,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: const [
-                ReviewCard(
-                  initials: 'RP',
-                  name: 'Rafi P.',
-                  stars: 5,
-                  text: 'Langsung bisa dipraktekkan! Menang di lomba pertama '
-                      'setelah ikut kelas ini.',
-                  gradient: [Color(0xFFA600B2), Color(0xFF6B0075)],
-                  date: '14 Apr 2026',
-                ),
-                SizedBox(width: 12),
-                ReviewCard(
-                  initials: 'SL',
-                  name: 'Sari L.',
-                  stars: 5,
-                  text: 'Materinya sangat terstruktur. Mentor responsif dan '
-                      'sangat membantu.',
-                  gradient: [Color(0xFF001261), Color(0xFF002196)],
-                  date: '2 Apr 2026',
-                ),
-                SizedBox(width: 12),
-                ReviewCard(
-                  initials: 'BK',
-                  name: 'Bima K.',
-                  stars: 4,
-                  text: 'Worth it banget untuk persiapan business case. Rekomen!',
-                  gradient: [Color(0xFF002196), Color(0xFF1D4ED8)],
-                  date: '28 Mar 2026',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: DetailColors.border, width: 1.5),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: Text(
-                'Lihat Semua Ulasan →',
-                style: GoogleFonts.manrope(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: DetailColors.navy,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return ReviewSection(productId: widget.product.id);
   }
 }
 

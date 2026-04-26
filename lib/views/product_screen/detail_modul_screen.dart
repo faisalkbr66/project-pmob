@@ -4,9 +4,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
+import '../../viewmodels/cart_viewmodel.dart';
 import '../../widgets/detail_widgets.dart';
+import '../../widgets/review_section.dart';
+import '../cart_screen.dart';
 
 class DetailModulScreen extends StatefulWidget {
   const DetailModulScreen({super.key, required this.product});
@@ -17,10 +21,51 @@ class DetailModulScreen extends StatefulWidget {
 }
 
 class _DetailModulScreenState extends State<DetailModulScreen> {
-  bool _wishlisted = false;
   int _activeTab = 0;
+  bool _addingToCart = false;
 
   static const _tabs = ['Deskripsi', 'Daftar Isi', 'Ulasan'];
+
+  Future<void> _addToCart() async {
+    if (_addingToCart) return;
+    setState(() => _addingToCart = true);
+    try {
+      await context.read<CartViewModel>().addProduct(widget.product);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.product.title} ditambahkan ke keranjang',
+            style: GoogleFonts.manrope(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          backgroundColor: const Color(0xFF001261),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          action: SnackBarAction(
+            label: 'Lihat',
+            textColor: const Color(0xFFF8E545),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CartScreen()),
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal: $e', style: GoogleFonts.manrope(fontSize: 13)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _addingToCart = false);
+    }
+  }
 
   static const _toc = [
     ('01', 'Pengantar Dunia Debat Kompetitif', '1–18'),
@@ -137,11 +182,11 @@ class _DetailModulScreenState extends State<DetailModulScreen> {
           DetailStickyFooter(
             originalPrice: widget.product.formattedOriginalPrice,
             price: widget.product.formattedPriceFull,
-            ctaLabel: 'Beli & Download',
+            ctaLabel: _addingToCart ? 'Menambahkan...' : 'Beli & Download',
             ctaIcon: Icons.download_rounded,
             ctaGradient: const [DetailColors.purple, Color(0xFF6B0075)],
             shadowColor: DetailColors.purple,
-            onTap: () {},
+            onTap: _addingToCart ? null : _addToCart,
           ),
         ],
       ),
@@ -236,17 +281,7 @@ class _DetailModulScreenState extends State<DetailModulScreen> {
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 16,
-          right: 16,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              DetailBackButton(onTap: () => Navigator.of(context).pop()),
-              DetailWishlistButton(
-                active: _wishlisted,
-                onTap: () => setState(() => _wishlisted = !_wishlisted),
-              ),
-            ],
-          ),
+          child: DetailBackButton(onTap: () => Navigator.of(context).pop()),
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 54,
@@ -497,55 +532,9 @@ class _DetailModulScreenState extends State<DetailModulScreen> {
   }
 
   Widget _buildUlasan() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const RatingSummaryCard(
-            rating: 4.8,
-            totalReviews: 823,
-            distribution: [79, 15, 5, 1, 0],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 158,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: const [
-                ReviewCard(
-                  initials: 'MF',
-                  name: 'Maya F.',
-                  stars: 5,
-                  text: 'Modul terlengkap yang pernah saya baca! Langsung '
-                      'juara 2 di lomba debat regional.',
-                  gradient: [Color(0xFFA600B2), Color(0xFF6B0075)],
-                  date: '10 Apr 2026',
-                ),
-                SizedBox(width: 12),
-                ReviewCard(
-                  initials: 'DW',
-                  name: 'Dani W.',
-                  stars: 5,
-                  text: 'Template-nya sangat berguna. Hemat waktu persiapan '
-                      'tim kami.',
-                  gradient: [Color(0xFF001261), Color(0xFF002196)],
-                  date: '5 Apr 2026',
-                ),
-                SizedBox(width: 12),
-                ReviewCard(
-                  initials: 'AR',
-                  name: 'Ayu R.',
-                  stars: 4,
-                  text: 'Penjelasannya mudah dipahami, bahasa ringan tapi '
-                      'substansif.',
-                  gradient: [Color(0xFF002196), Color(0xFF1D4ED8)],
-                  date: '1 Apr 2026',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return ReviewSection(
+      productId: widget.product.id,
+      barColor: DetailColors.purple,
     );
   }
 }

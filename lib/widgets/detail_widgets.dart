@@ -298,8 +298,6 @@ class AuthorMiniCard extends StatelessWidget {
     required this.subtitle,
     required this.initials,
     required this.gradient,
-    this.actionText = 'Ikuti',
-    this.onAction,
   });
 
   final String label;
@@ -307,8 +305,6 @@ class AuthorMiniCard extends StatelessWidget {
   final String subtitle;
   final String initials;
   final List<Color> gradient;
-  final String actionText;
-  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -372,27 +368,6 @@ class AuthorMiniCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: DetailColors.purpleFaint,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: onAction,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: Text(
-                  actionText,
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: DetailColors.purple,
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -879,7 +854,7 @@ class DetailStickyFooter extends StatelessWidget {
     required this.ctaLabel,
     required this.ctaIcon,
     required this.ctaGradient,
-    required this.onTap,
+    this.onTap,
     this.originalPrice,
     this.shadowColor,
   });
@@ -889,7 +864,7 @@ class DetailStickyFooter extends StatelessWidget {
   final String ctaLabel;
   final IconData ctaIcon;
   final List<Color> ctaGradient;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Color? shadowColor;
 
   @override

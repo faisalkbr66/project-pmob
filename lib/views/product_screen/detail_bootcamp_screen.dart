@@ -4,9 +4,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/product_model.dart';
+import '../../viewmodels/cart_viewmodel.dart';
 import '../../widgets/detail_widgets.dart';
+import '../../widgets/review_section.dart';
+import '../cart_screen.dart';
 
 class DetailBootcampScreen extends StatefulWidget {
   const DetailBootcampScreen({super.key, required this.product});
@@ -17,11 +21,52 @@ class DetailBootcampScreen extends StatefulWidget {
 }
 
 class _DetailBootcampScreenState extends State<DetailBootcampScreen> {
-  bool _wishlisted = false;
   int _activeTab = 0;
   int _selectedBatch = 0;
+  bool _addingToCart = false;
 
   static const _tabs = ['Deskripsi', 'Kurikulum', 'Ulasan'];
+
+  Future<void> _addToCart() async {
+    if (_addingToCart) return;
+    setState(() => _addingToCart = true);
+    try {
+      await context.read<CartViewModel>().addProduct(widget.product);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${widget.product.title} ditambahkan ke keranjang',
+            style: GoogleFonts.manrope(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          backgroundColor: const Color(0xFF001261),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          action: SnackBarAction(
+            label: 'Lihat',
+            textColor: const Color(0xFFF8E545),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CartScreen()),
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal: $e', style: GoogleFonts.manrope(fontSize: 13)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _addingToCart = false);
+    }
+  }
 
   static const _batches = [
     _Batch('Batch 5 — Mei 2026', '5 Mei – 2 Jun 2026', 8, 'open'),
@@ -175,10 +220,10 @@ class _DetailBootcampScreenState extends State<DetailBootcampScreen> {
           DetailStickyFooter(
             originalPrice: widget.product.formattedOriginalPrice,
             price: widget.product.formattedPriceFull,
-            ctaLabel: 'Daftar Sekarang',
+            ctaLabel: _addingToCart ? 'Menambahkan...' : 'Daftar Sekarang',
             ctaIcon: Icons.bolt_rounded,
             ctaGradient: const [DetailColors.navy, Color(0xFF1E3A8A)],
-            onTap: () {},
+            onTap: _addingToCart ? null : _addToCart,
           ),
         ],
       ),
@@ -366,18 +411,7 @@ class _DetailBootcampScreenState extends State<DetailBootcampScreen> {
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 16,
-          right: 16,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              DetailBackButton(onTap: () => Navigator.of(context).pop()),
-              DetailWishlistButton(
-                active: _wishlisted,
-                activeColor: DetailColors.yellow.withOpacity(0.4),
-                onTap: () => setState(() => _wishlisted = !_wishlisted),
-              ),
-            ],
-          ),
+          child: DetailBackButton(onTap: () => Navigator.of(context).pop()),
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 54,
@@ -506,46 +540,9 @@ class _DetailBootcampScreenState extends State<DetailBootcampScreen> {
   }
 
   Widget _buildUlasan() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const RatingSummaryCard(
-            rating: 4.9,
-            totalReviews: 347,
-            distribution: [88, 9, 3, 0, 0],
-            barColor: DetailColors.navy,
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 158,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: const [
-                ReviewCard(
-                  initials: 'HM',
-                  name: 'Hana M.',
-                  stars: 5,
-                  text: 'Bootcamp paling intense dan worth it! Tim kami juara '
-                      '1 setelah ikut ini.',
-                  gradient: [Color(0xFF001261), Color(0xFF002196)],
-                  date: '8 Apr 2026',
-                ),
-                SizedBox(width: 12),
-                ReviewCard(
-                  initials: 'TP',
-                  name: 'Toni P.',
-                  stars: 5,
-                  text: 'Mentor-mentornya top semua. Live session-nya '
-                      'langsung bisa dipraktekkan.',
-                  gradient: [Color(0xFFA600B2), Color(0xFF6B0075)],
-                  date: '22 Mar 2026',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return ReviewSection(
+      productId: widget.product.id,
+      barColor: DetailColors.navy,
     );
   }
 }

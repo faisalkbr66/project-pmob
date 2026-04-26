@@ -9,11 +9,13 @@ import 'package:provider/provider.dart';
 import '../../models/mentor_model.dart';
 import '../../models/product_model.dart';
 import '../../viewmodels/product_viewmodel.dart';
+import '../../widgets/cart_icon_button.dart';
 import '../../widgets/featured_mentoring_card.dart';
 import '../../widgets/mentoring_card.dart';
 import '../../widgets/mentoring_section_header.dart';
 import '../../widgets/product_grid_card.dart';
 import '../../widgets/product_tab_chip.dart';
+import '../cart_screen.dart';
 import 'detail_bootcamp_screen.dart';
 import 'detail_kelas_screen.dart';
 import 'detail_mentor_screen.dart';
@@ -79,6 +81,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final selected = await showModalBottomSheet<ProductTab>(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -116,8 +119,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     const SliverToBoxAdapter(child: SizedBox(height: 18)),
                   ],
                   // Sort + Kategori chips
-                  if (vm.showProducts)
-                    SliverToBoxAdapter(child: _buildSortRow(vm)),
+                  SliverToBoxAdapter(child: _buildSortRow(vm)),
                   _buildProductSliver(vm),
                   if (vm.showMentoring) ...[
                     const SliverToBoxAdapter(child: SizedBox(height: 8)),
@@ -133,21 +135,32 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
+  void _openCart() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const CartScreen()),
+    );
+  }
+
   // ===== HEADER =====
   Widget _buildHeader(ProductViewModel vm) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Produk',
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: _navy,
+          Expanded(
+            child: Text(
+              'Produk',
+              style: GoogleFonts.spaceGrotesk(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: _navy,
+              ),
             ),
           ),
+          // Cart icon with badge
+          CartIconButton(onTap: _openCart),
+          const SizedBox(width: 8),
+          // Search toggle
           Material(
             color: _surface,
             borderRadius: BorderRadius.circular(12),
@@ -214,7 +227,7 @@ class _ProductScreenState extends State<ProductScreen> {
         children: [
           Expanded(
             child: Text(
-              '${vm.gridProducts.length} produk',
+              '${vm.showProducts ? vm.gridProducts.length : vm.mentors.length} ${vm.showProducts ? 'produk' : 'mentor'}',
               style: GoogleFonts.manrope(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -231,19 +244,20 @@ class _ProductScreenState extends State<ProductScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  for (final s in ProductSort.values)
-                    ProductTabChip(
-                      label: s.label,
-                      isActive: vm.sort == s,
-                      onTap: () => vm.setSort(s),
-                      variant: ProductChipVariant.sort,
-                    ),
-                  // CHIP KATEGORI — yang baru. Active state ketika tab != Semua.
+                  // CHIP KATEGORI — dipindah ke urutan pertama (paling kiri)
                   _CategoryChip(
                     label: isFiltered ? vm.activeTab.label : 'Kategori',
                     isActive: isFiltered,
                     onTap: () => _openCategorySheet(vm),
                   ),
+                  if (vm.showProducts)
+                    for (final s in ProductSort.values)
+                      ProductTabChip(
+                        label: s.label,
+                        isActive: vm.sort == s,
+                        onTap: () => vm.setSort(s),
+                        variant: ProductChipVariant.sort,
+                      ),
                 ],
               ),
             ),
@@ -328,39 +342,6 @@ class _ProductScreenState extends State<ProductScreen> {
               ],
             ),
           ),
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0x14001261), width: 1.5),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                foregroundColor: _navy,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Lihat Semua Mentor',
-                    style: GoogleFonts.manrope(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: _navy,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.chevron_right_rounded, size: 18, color: _navy),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -387,7 +368,7 @@ class _CategoryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = isActive ? _purple : _muted;
     return Padding(
-      padding: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.only(right: 6),
       child: Material(
         color: isActive ? _purpleFaint : Colors.transparent,
         borderRadius: BorderRadius.circular(99),
@@ -439,51 +420,53 @@ class _CategorySheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E5EC),
-                  borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5E5EC),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Filter Kategori',
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: _navy,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Pilih jenis produk yang ingin kamu lihat',
-              style: GoogleFonts.manrope(
-                fontSize: 12,
-                color: _muted,
-              ),
-            ),
-            const SizedBox(height: 16),
-            for (final tab in ProductTab.values)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _CategoryOption(
-                  tab: tab,
-                  isActive: tab == active,
-                  onTap: () => Navigator.of(context).pop(tab),
+              const SizedBox(height: 16),
+              Text(
+                'Filter Kategori',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: _navy,
                 ),
               ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Pilih jenis produk yang ingin kamu lihat',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  color: _muted,
+                ),
+              ),
+              const SizedBox(height: 16),
+              for (final tab in ProductTab.values)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _CategoryOption(
+                    tab: tab,
+                    isActive: tab == active,
+                    onTap: () => Navigator.of(context).pop(tab),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
